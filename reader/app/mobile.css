@@ -217,6 +217,9 @@
   .ai-model-chip { max-width: 104px; }
   .ai-messages { padding: 16px 16px 8px; }
   .ai-bubble { font-size: 15px; max-width: 94%; }
+  .ai-copy-btn { min-height: 32px; padding: 4px 9px; font-size: 11px; }
+  .ai-copy-label { font-size: 10.5px; }
+  .ai-guided { min-height: 28px; }
   .ai-text-part { font-size: 15px; }
   .ai-composer {
     padding-bottom: calc(10px + var(--safe-bottom));

@@ -375,6 +375,12 @@ body.ai-open #ai-open {
 
 .ai-text-part { display: block; }
 .ai-error { color: var(--accent); font-family: var(--ui-font); font-size: 11px; line-height: 1.65; }
+.ai-refusal {
+  color: var(--ink-soft);
+  font-family: var(--ui-font);
+  font-size: 12px;
+  line-height: 1.75;
+}
 .ai-msg.system .ai-link-btn { margin-top: 5px; }
 
 .ai-usage { margin-top: 7px; font-family: var(--ui-font); font-size: 9.5px; color: var(--muted); }
@@ -469,7 +475,14 @@ body.ai-open #ai-open {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ai-spoiler {
+.ai-context-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+.ai-spoiler,
+.ai-guided {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -478,7 +491,53 @@ body.ai-open #ai-open {
   white-space: nowrap;
   cursor: pointer;
 }
-.ai-spoiler input { accent-color: var(--accent); }
+.ai-spoiler input,
+.ai-guided input { accent-color: var(--accent); }
+.ai-guided {
+  padding: 1px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: #fbf7ee;
+  color: var(--muted);
+}
+.ai-guided:has(input:checked) {
+  border-color: #dfc0b8;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* 回答复制：带索引 / 不带索引 */
+.ai-answer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 7px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--line-soft);
+  font-family: var(--ui-font);
+}
+.ai-copy-label {
+  margin-right: 1px;
+  color: var(--muted);
+  font-size: 9.5px;
+}
+.ai-copy-btn {
+  padding: 2px 7px;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-family: var(--ui-font);
+  font-size: 10px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.ai-copy-btn:hover {
+  border-color: var(--accent-soft);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
 .ai-input {
   width: 100%;
   max-height: 118px;

@@ -1,7 +1,7 @@
 // 开发期测试：移动端 AI 桥、Anthropic SSE、工具调用与分段带读。
 'use strict';
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, clipboard } = require('electron');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -165,8 +165,28 @@ function startMock() {
       let body = '';
       req.on('data', (chunk) => { body += chunk; });
       req.on('end', () => {
+        let payload = {};
+        try { payload = JSON.parse(body); } catch { /* ignore */ }
+        const system = typeof payload.system === 'string' ? payload.system : JSON.stringify(payload.system || '');
+        if (system.includes('主题过滤器')) {
+          const userText = JSON.stringify(payload.messages || []);
+          const offTopic = /python|天气|股票|写.*代码|翻译.*英文/i.test(userText);
+          console.log('mock topic:', offTopic ? 'NO' : 'YES');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            id: 'msg_topic',
+            type: 'message',
+            role: 'assistant',
+            model: 'mock-model',
+            content: [{ type: 'text', text: offTopic ? 'NO' : 'YES' }],
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            usage: { input_tokens: 60, output_tokens: 1 },
+          }));
+          return;
+        }
         requestCount += 1;
-        console.log('mock request', requestCount, 'bytes', body.length);
+        console.log('mock request', requestCount, 'bytes', body.length, /<逐段带读模式>/.test(body) ? 'guided' : 'normal');
         if (requestCount === 1) {
           sse(res, toolEvents('toolu_read_1', 'read_chapter', { chapter: 1 }));
           return;
@@ -228,6 +248,7 @@ app.whenReady().then(async () => {
       settingsStatus: document.querySelector('#ai-settings-status').textContent,
     })`, true));
     await win.webContents.executeJavaScript(`(() => {
+      document.querySelector('#ai-guided').click();
       document.querySelector('#ai-input').value = '带我读第一回的缘起部分';
       document.querySelector('#ai-send').click();
     })()`, true);
@@ -244,6 +265,25 @@ app.whenReady().then(async () => {
       chat: document.querySelector('#ai-messages').innerText.slice(-220),
     })`, true));
     await shot(win, '08-ai-reading');
+    console.log('guided:', await win.webContents.executeJavaScript(
+      "JSON.stringify({checked:document.querySelector('#ai-guided').checked, context:document.querySelector('#ai-context').textContent})", true));
+    console.log('copy buttons:', await win.webContents.executeJavaScript(
+      "document.querySelectorAll('.ai-msg.assistant:last-child .ai-copy-btn').length", true));
+    await win.webContents.executeJavaScript(`(() => {
+      const msg = Array.from(document.querySelectorAll('.ai-msg.assistant')).at(-1);
+      msg.querySelector('.ai-copy-btn[data-copy="index"]')?.click();
+    })()`, true);
+    await sleep(400);
+    const clipA = await clipboard.readText();
+    console.log('clipboard with index:', String(clipA || '').slice(0, 140));
+    await win.webContents.executeJavaScript(`(() => {
+      const msg = Array.from(document.querySelectorAll('.ai-msg.assistant')).at(-1);
+      msg.querySelector('.ai-copy-btn[data-copy="plain"]')?.click();
+    })()`, true);
+    await sleep(400);
+    const clipAPlain = await clipboard.readText();
+    console.log('clipboard first without index:', String(clipAPlain || '').slice(0, 140));
+    console.log('citation removed:', !/第1回/.test(String(clipAPlain || '')));
 
     await win.webContents.executeJavaScript("document.querySelector('#ai-read-done').click()", true);
     await sleep(1200);
@@ -252,7 +292,32 @@ app.whenReady().then(async () => {
       chat: document.querySelector('#ai-messages').innerText.slice(-180),
     })`, true));
     await shot(win, '09-ai-continued');
+    await win.webContents.executeJavaScript(`(() => {
+      const msg = Array.from(document.querySelectorAll('.ai-msg.assistant')).at(-1);
+      msg.querySelector('.ai-copy-btn[data-copy="plain"]')?.click();
+    })()`, true);
+    await sleep(400);
+    const clipB = await clipboard.readText();
+    console.log('clipboard without index:', String(clipB || '').slice(0, 180));
     console.log('requests total:', requestCount);
+
+    await win.webContents.executeJavaScript(`(() => {
+      document.querySelector('#ai-input').value = '写一个 Python 快速排序';
+      document.querySelector('#ai-send').click();
+    })()`, true);
+    await waitFor(win, "Boolean(document.querySelector('.ai-refusal'))", 15000);
+    await sleep(400);
+    console.log('refusal:', await win.webContents.executeJavaScript(`JSON.stringify({
+      text: document.querySelector('.ai-refusal').textContent,
+      hint: document.querySelector('#ai-hint').textContent,
+      sendDisabled: document.querySelector('#ai-send').disabled,
+      cooldownStored: Boolean(localStorage.getItem('hlm.ai.cooldown.v1')),
+    })`, true));
+    await shot(win, '10-refusal');
+    console.log('backend cooldown:', await win.webContents.executeJavaScript(`(async () => {
+      const r = await window.hlmDesktop.aiSend({ text: '再写一个 Python 程序', currentHui: 1, spoiler: false, guided: true });
+      return JSON.stringify({ ok: r.ok, code: r.code, retryAfter: r.retryAfter });
+    })()`, true));
     console.log('done');
   } catch (err) {
     console.error('TEST FAILED:', err.stack || err);

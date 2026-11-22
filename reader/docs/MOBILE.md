@@ -81,6 +81,12 @@ reader/android/app/build/outputs/apk/debug/app-debug.apk
 - `app/data-import.js`：IndexedDB 书源导入；桌面版同文件会调用 IPC 写入 `%APPDATA%`。
 - `app/sw.js` + `manifest.webmanifest`：PWA 离线与安装。
 
+### AI 节奏与复制
+
+- 输入框上方可勾选「逐段带读」：每次只布置 1–3 段，读完后只讲解刚读的一小段，再给下一段。
+- 每条回答底部提供「带索引 / 不带索引」复制；移动端复制按钮已加大触控区域。
+- 无关《红楼梦》的提问会被拒绝，并进入 30 秒发送冷却。
+
 ### AI 与 CORS
 
 移动端请求由浏览器/WebView 直接发往你配置的 Base URL。要求：
@@ -100,6 +106,9 @@ Anthropic 官方 API 已支持浏览器直连。自建网关如果不方便开 C
 - 键盘弹出时通过 `visualViewport` 同步可见高度，避免输入框被遮住。
 
 ### 已知限制
+
+- 中英文混杂输出：部分模型会在中文回答里夹杂英文，本项目不做后处理，复制时原样保留。
+
 
 - 移动版不内置免费模型运行时，不能使用桌面版的 Kilo 免费池。
 - API Key 存在 `localStorage`，没有系统级加密；公共设备上请用完后删除。

@@ -147,9 +147,14 @@
         <div class="ai-composer">
           <div class="ai-context-row">
             <span id="ai-context" class="ai-context"></span>
-            <label class="ai-spoiler" title="关闭时只依据当前回及之前的内容">
-              <input id="ai-spoiler" type="checkbox"> 允许剧透
-            </label>
+            <span class="ai-context-options">
+              <label class="ai-guided" title="逐段带读：每次只讲解一小段，读完再继续">
+                <input id="ai-guided" type="checkbox"> 逐段带读
+              </label>
+              <label class="ai-spoiler" title="关闭时只依据当前回及之前的内容">
+                <input id="ai-spoiler" type="checkbox"> 允许剧透
+              </label>
+            </span>
           </div>
           <textarea id="ai-input" class="ai-input" rows="2"
                     placeholder="问点关于《红楼梦》的…（Enter 发送，Shift+Enter 换行）"></textarea>

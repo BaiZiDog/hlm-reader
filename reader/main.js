@@ -1,7 +1,7 @@
 // 《红楼梦》桌面阅读器 —— Electron 主进程
 'use strict';
 
-const { app, BrowserWindow, Menu, ipcMain, screen, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, screen, shell, clipboard } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { registerAiIpc, resetOnLoad, resetBook } = require('./ai-main');
@@ -203,6 +203,15 @@ ipcMain.handle('reader:get-state', () => ({
 }));
 
 // 桌面版也允许从界面导入 book.json：写入用户数据目录，并清空 AI 的书页缓存。
+ipcMain.handle('reader:copy-text', (_event, text) => {
+  try {
+    clipboard.writeText(String(text || ''));
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message || '复制失败。' };
+  }
+});
+
 ipcMain.handle('reader:save-book', (_event, json) => {
   try {
     const text = String(json || '');

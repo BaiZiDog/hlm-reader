@@ -28,6 +28,7 @@
     hint: $('#ai-hint'),
     context: $('#ai-context'),
     spoiler: $('#ai-spoiler'),
+    guided: $('#ai-guided'),
     modelChip: $('#ai-model-chip'),
     baseURL: $('#ai-base-url'),
     baseField: $('#ai-base-field'),
@@ -55,6 +56,8 @@
   }
 
   const FLOAT_KEY = 'hlm.ai.float.v1';
+  const GUIDED_KEY = 'hlm.ai.guided.v1';
+  const COOLDOWN_KEY = 'hlm.ai.cooldown.v1';
   const MIN_WIDTH = 340;
   const MIN_HEIGHT = 380;
   const TOP_MARGIN = 64;
@@ -70,6 +73,9 @@
     assistant: null,
     lastUsage: null,
     spoiler: false,
+    guided: false,
+    cooldownUntil: 0,
+    cooldownTimer: 0,
     formProvider: MOBILE ? 'custom' : 'builtin',
     formModels: [],
     builtinWarmed: false,
@@ -79,6 +85,13 @@
     resize: null,
     settingsOpen: false,
   };
+
+  try {
+    state.guided = localStorage.getItem(GUIDED_KEY) === '1';
+  } catch {
+    state.guided = false;
+  }
+  if (els.guided) els.guided.checked = state.guided;
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -110,15 +123,73 @@
     return Boolean(state.config && state.config.hasKey && state.config.model);
   }
 
+  function cooldownRemaining() {
+    return Math.max(0, Number(state.cooldownUntil) - Date.now());
+  }
+
+  function stopCooldownTimer() {
+    if (state.cooldownTimer) {
+      clearInterval(state.cooldownTimer);
+      state.cooldownTimer = 0;
+    }
+  }
+
+  function updateCooldownUI() {
+    const remain = cooldownRemaining();
+    if (remain <= 0) {
+      state.cooldownUntil = 0;
+      stopCooldownTimer();
+      try { localStorage.removeItem(COOLDOWN_KEY); } catch { /* ignore */ }
+    }
+  }
+
+  function startCooldown(seconds) {
+    const value = Math.max(1, Math.ceil(Number(seconds) || 30));
+    state.cooldownUntil = Date.now() + value * 1000;
+    try { localStorage.setItem(COOLDOWN_KEY, String(state.cooldownUntil)); } catch { /* ignore */ }
+    stopCooldownTimer();
+    state.cooldownTimer = setInterval(() => {
+      updateCooldownUI();
+      updateControls();
+    }, 250);
+    updateCooldownUI();
+    updateControls();
+  }
+
+  function restoreCooldown() {
+    try {
+      const until = Number(localStorage.getItem(COOLDOWN_KEY) || 0);
+      if (Number.isFinite(until) && until > Date.now()) {
+        state.cooldownUntil = until;
+        state.cooldownTimer = setInterval(() => {
+          updateCooldownUI();
+          updateControls();
+        }, 250);
+      } else {
+        localStorage.removeItem(COOLDOWN_KEY);
+      }
+    } catch {
+      state.cooldownUntil = 0;
+    }
+    updateControls();
+  }
+
   function updateControls() {
     const ready = configReady();
-    els.send.disabled = state.streaming || !ready;
+    const cooling = cooldownRemaining() > 0;
+    const waitSeconds = cooling ? Math.max(1, Math.ceil(cooldownRemaining() / 1000)) : 0;
+    els.send.disabled = state.streaming || !ready || cooling;
     els.stop.hidden = !state.streaming;
     els.spoiler.disabled = state.streaming;
+    if (els.guided) els.guided.disabled = state.streaming;
     els.input.disabled = state.streaming;
-    els.hint.textContent = state.streaming
-      ? 'AI 正在查阅…'
-      : 'Enter 发送 · Shift+Enter 换行';
+    if (cooling) {
+      els.hint.textContent = `请等待 ${waitSeconds} 秒后再提问`;
+    } else if (state.streaming) {
+      els.hint.textContent = 'AI 正在查阅…';
+    } else {
+      els.hint.textContent = 'Enter 发送 · Shift+Enter 换行';
+    }
     els.openBtn.setAttribute('aria-pressed', String(state.open));
     document.body.classList.toggle('ai-open', state.open);
   }
@@ -140,7 +211,8 @@
   function updateContext() {
     const chapter = currentChapter();
     const label = chapter ? chapter.label : '第一回';
-    els.context.textContent = `当前：${label} · ${els.spoiler.checked ? '允许剧透' : '防剧透'}`;
+    els.context.textContent = `当前：${label} · ${els.spoiler.checked ? '允许剧透' : '防剧透'}`
+      + (state.guided ? ' · 逐段带读' : '');
   }
 
   function scrollBottom(force) {
@@ -543,6 +615,108 @@
     }
   }
 
+  // ---------- 复制回答 ----------
+
+  const CITATION_RE = /第\s*\d{1,3}\s*回\s*[·:：]?\s*p\s*\d{1,3}(?:\s*[–—〜~-]\s*p?\s*\d{1,3})?/g;
+
+  function plainAnswerText(raw) {
+    return String(raw || '')
+      .replace(/^\s*```[a-zA-Z0-9_-]*\s*$/gm, '')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1$2')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^\s*>\s?/gm, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  function answerWithoutCitations(text) {
+    let out = String(text || '')
+      .replace(CITATION_RE, '')
+      .replace(/[（(]\s*[)）]/g, '')
+      .replace(/[ 	]+([，。；：！？、])/g, '$1')
+      .replace(/([（(])\s+/g, '$1')
+      .replace(/\s+([）)])/g, '$1')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    // 去掉因引用被删除而残留的“可对照 的”之类空格。
+    out = out.replace(/可对照\s*的/g, '可对照');
+    out = out.replace(/可对照\s*(?=[，。；：！？]|$)/g, '可对照原文');
+    return out;
+  }
+
+  async function copyToClipboard(text) {
+    const value = String(text || '');
+    if (!value) return false;
+    if (window.hlmDesktop && typeof window.hlmDesktop.copyText === 'function') {
+      try {
+        const result = await window.hlmDesktop.copyText(value);
+        if (result && result.ok) return true;
+      } catch {
+        /* 继续使用浏览器剪贴板兜底 */
+      }
+    }
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch {
+      /* 某些 file:// / WebView 环境会拒绝 Clipboard API，走兜底 */
+    }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
+  function addCopyActions(a) {
+    if (!a || a.copyActions || !a.rawText) return;
+    a.copyActions = true;
+    const row = el('div', 'ai-answer-actions');
+    row.appendChild(el('span', 'ai-copy-label', '复制回答'));
+    const withIndex = el('button', 'ai-copy-btn', '带索引');
+    const withoutIndex = el('button', 'ai-copy-btn', '不带索引');
+    withIndex.type = 'button';
+    withoutIndex.type = 'button';
+    withIndex.dataset.copy = 'index';
+    withoutIndex.dataset.copy = 'plain';
+    withIndex.title = '保留「第X回·pN」引用，便于回查原文';
+    withoutIndex.title = '删除「第X回·pN」引用，只复制讲解文字';
+    const plain = plainAnswerText(a.rawText);
+    const clean = answerWithoutCitations(plain);
+    withIndex.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      const ok = await copyToClipboard(plain);
+      if (reader && reader.showToast) {
+        reader.showToast(ok ? '已复制（带索引）' : '复制失败，请长按选择文字', 1700);
+      }
+    });
+    withoutIndex.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      const ok = await copyToClipboard(clean || plain);
+      if (reader && reader.showToast) {
+        reader.showToast(ok ? '已复制（不带索引）' : '复制失败，请长按选择文字', 1700);
+      }
+    });
+    row.append(withIndex, withoutIndex);
+    a.bubble.appendChild(row);
+  }
+
   // ---------- 对话渲染 ----------
 
   function ensureAssistant(turnId) {
@@ -653,6 +827,10 @@
       else part.el.remove();
     }
     a.currentText = null;
+    a.rawText = a.parts
+      .map((part) => (part.text || '').trim())
+      .filter(Boolean)
+      .join('\n\n');
     if (!a.bubble.querySelector('.ai-text-part') && !a.bubble.querySelector('.ai-tool')) {
       a.bubble.appendChild(el('div', 'ai-text-part', '（没有返回文字）'));
     }
@@ -698,6 +876,14 @@
     scrollBottom(true);
   }
 
+  function appendRefusal(text) {
+    const msg = el('div', 'ai-msg assistant');
+    const bubble = el('div', 'ai-bubble');
+    bubble.appendChild(el('div', 'ai-refusal', text));
+    msg.appendChild(bubble);
+    els.messages.appendChild(msg);
+  }
+
   function resetTurnState() {
     state.streaming = false;
     state.expectTurn = false;
@@ -739,6 +925,16 @@
           reader.followAiChapter(event.hui);
         }
         break;
+      case 'off_topic': {
+        if (state.assistant) {
+          state.assistant.msg.remove();
+          state.assistant = null;
+        }
+        startCooldown(event.retryAfter || 30);
+        appendRefusal(event.message || '这个问题与《红楼梦》无关，请等待 30 秒后再提问。');
+        scrollBottom(true);
+        break;
+      }
       case 'reading_task':
         if (event.reading && reader && reader.setAiReadingTask) {
           reader.setAiReadingTask(event.reading);
@@ -763,6 +959,7 @@
         finalizeAssistant();
         syncReaderCitations();
         appendUsage(event.usage || state.lastUsage);
+        if (state.assistant) addCopyActions(state.assistant);
         focusAssistantStart();
         resetTurnState();
         if (reader && reader.endAiReadingSession) reader.endAiReadingSession();
@@ -774,6 +971,7 @@
         const needsSettings = /Key|密钥|连接|接口|模型|服务|设置/.test(message);
         if (state.assistant) {
           state.assistant.bubble.appendChild(el('div', 'ai-error', message));
+          addCopyActions(state.assistant);
         } else {
           appendSystemMessage(message, needsSettings);
         }
@@ -784,6 +982,7 @@
       }
       case 'aborted': {
         finalizeAssistant();
+        if (state.assistant) addCopyActions(state.assistant);
         appendSystemMessage('已停止。', false);
         resetTurnState();
         if (reader && reader.endAiReadingSession) reader.endAiReadingSession();
@@ -799,6 +998,10 @@
 
   async function sendMessage(options) {
     if (state.streaming) return false;
+    if (cooldownRemaining() > 0) {
+      updateControls();
+      return false;
+    }
     if (!configReady()) {
       openSettings();
       return false;
@@ -831,6 +1034,7 @@
         text,
         currentHui: currentHui(),
         spoiler: els.spoiler.checked,
+        guided: state.guided,
         readingContinue: Boolean(options && options.readingContinue),
       });
     } catch (err) {
@@ -839,8 +1043,13 @@
     if (!result || !result.ok) {
       resetTurnState();
       if (reader && reader.endAiReadingSession) reader.endAiReadingSession();
-      appendSystemMessage((result && result.error) || '发送失败。', true);
-      if (result && (result.code === 'NO_KEY' || result.code === 'NO_MODEL')) openSettings();
+      if (result && result.code === 'COOLDOWN') {
+        startCooldown(result.retryAfter || 30);
+        appendRefusal((result && result.error) || '请稍后再提问。');
+      } else {
+        appendSystemMessage((result && result.error) || '发送失败。', true);
+        if (result && (result.code === 'NO_KEY' || result.code === 'NO_MODEL')) openSettings();
+      }
       return false;
     }
     // 极快的回答可能在 invoke 返回前就已经走完 done/aborted。
@@ -930,6 +1139,7 @@
     }
     const examples = el('div', 'ai-examples');
     const prompts = [
+      '带我逐段读这一回',
       '本回主要讲了什么？',
       '梳理本回的人物关系',
       '这一回在全书结构中起什么作用？',
@@ -939,6 +1149,12 @@
       const btn = el('button', 'ai-example', prompt);
       btn.type = 'button';
       btn.addEventListener('click', () => {
+        if (prompt === '带我逐段读这一回' && els.guided) {
+          els.guided.checked = true;
+          state.guided = true;
+          try { localStorage.setItem(GUIDED_KEY, '1'); } catch { /* ignore */ }
+          updateContext();
+        }
         els.input.value = prompt;
         sendMessage();
       });
@@ -1271,6 +1487,16 @@
       });
     }
 
+    if (els.guided) {
+      els.guided.addEventListener('change', () => {
+        state.guided = els.guided.checked;
+        try {
+          localStorage.setItem(GUIDED_KEY, state.guided ? '1' : '0');
+        } catch { /* ignore */ }
+        updateContext();
+      });
+    }
+
     els.input.addEventListener('input', () => {
       els.input.style.height = 'auto';
       els.input.style.height = `${Math.min(118, els.input.scrollHeight)}px`;
@@ -1306,6 +1532,7 @@
   // ---------- 启动 ----------
 
   desktop.onAiEvent(handleEvent);
+  restoreCooldown();
   restoreFloatState();
   bindEvents();
   updateControls();

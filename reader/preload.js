@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('hlmDesktop', {
   saveProgress: (progress) => ipcRenderer.send('reader:save-progress', progress),
   saveProgressSync: (progress) => ipcRenderer.sendSync('reader:save-progress-sync', progress),
   saveBook: (json) => ipcRenderer.invoke('reader:save-book', json),
+  copyText: (text) => ipcRenderer.invoke('reader:copy-text', text),
 
   aiGetConfig: () => ipcRenderer.invoke('ai:get-config'),
   aiSaveConfig: (payload) => ipcRenderer.invoke('ai:save-config', payload),
