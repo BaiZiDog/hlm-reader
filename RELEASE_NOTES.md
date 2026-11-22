@@ -6,7 +6,7 @@
 
 - **Android APK**：`hlm-reader-1.0.0-debug.apk`（debug 签名，适合侧载）。
 - **源码**：GitHub 自动生成的 Source code 压缩包。
-- PWA：仓库启用 GitHub Pages 后访问 `https://baizidog.github.io/hlm-reader/`。
+- PWA：https://baizidog.github.io/hlm-reader/
 
 安装包和公开仓库**不包含《红楼梦》正文、注释或 book.json**。首次打开请导入你自己构建的 `book.json`。
 
