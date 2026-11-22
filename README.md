@@ -5,6 +5,12 @@
 > **这个仓库不包含《红楼梦》正文、注释或书页数据。**
 > 程序代码以 MIT 发布；正文、人民文学出版社 2008 年版的注释/校记以及由它们生成的 `book.json` 不在 MIT 许可范围内。请使用你合法持有的源文件构建或导入。详见 [书源数据](reader/docs/DATA.md)。
 
+## 在线体验
+
+- **PWA 演示（不含书源）**：https://baizidog.github.io/hlm-reader/
+- **Android APK**：[Releases](https://github.com/BaiZiDog/hlm-reader/releases)
+- 在线版首次打开会提示导入 `book.json`；没有书源时只能看到导入页。
+
 ## 截图与界面
 
 - 桌面：左侧目录、中间正文、右侧固定注释栏，注释角标可点击。
