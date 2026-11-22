@@ -1,0 +1,456 @@
+{
+  "version": 1,
+  "at": 1795272414944,
+  "entries": [
+    "big-pickle",
+    "mimo-v2.6-flash-free",
+    "deepseek-v4.1-flash-free",
+    "longcat-2.5-free",
+    "iceman-free",
+    "beam-free",
+    "flint-40b-free",
+    "nemotron-3.5-super-vl-free",
+    "jev-1.13-free",
+    "nemotron-3.5-lightning-free",
+    "hy4-flash-free",
+    "tidepool-alpha-free"
+  ],
+  "kiloRows": [
+    {
+      "id": "kilo-auto/free",
+      "name": "Kilo Auto Free",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 256000,
+      "maxOutput": 32768,
+      "canDisableThinking": false,
+      "regionSensitive": false,
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "inclusionai/ling-3.2-flash:free",
+      "name": "Kilo Ling 3.2 Flash",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": true,
+      "reasoning": true,
+      "contextWindow": 1048576,
+      "maxOutput": 262144,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "vision",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "baidu/ernie-5.5-flash-preview:free",
+      "name": "Kilo ERNIE-5.5-Flash-Preview",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 1024000,
+      "maxOutput": 921600,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "liquid/lfm-3-1.7b:free",
+      "name": "Kilo LFM3-1.7B",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 262144,
+      "maxOutput": 8192,
+      "canDisableThinking": false,
+      "regionSensitive": false,
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "particle-ai/particle-1:free",
+      "name": "Kilo Particle-1",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": true,
+      "reasoning": true,
+      "contextWindow": 1048576,
+      "maxOutput": 131072,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "vision",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "recursive/flint-v1.0:free",
+      "name": "Kilo Flint",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 262144,
+      "maxOutput": 235929,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "Kilo Nemotron 3.5 Super VL",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": true,
+      "reasoning": true,
+      "contextWindow": 1000000,
+      "maxOutput": 131072,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "vision",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "name": "Kilo Nemotron 3.5 Lightning",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 1000000,
+      "maxOutput": 65536,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "name": "Kilo Nemotron 3 Ultra",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 1000000,
+      "maxOutput": 65536,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "Kilo Nemotron 3 Nano Omni",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": true,
+      "reasoning": true,
+      "contextWindow": 256000,
+      "maxOutput": 65536,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "vision",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "openrouter/free",
+      "name": "Kilo OpenRouter Free Models Router",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": true,
+      "reasoning": true,
+      "contextWindow": 200000,
+      "maxOutput": 32768,
+      "canDisableThinking": false,
+      "regionSensitive": false,
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "tags": [
+        "long-context",
+        "vision",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "reflection/beam-free",
+      "name": "Kilo Beam 1.0",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 1048576,
+      "maxOutput": 131072,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    },
+    {
+      "id": "stealth/glyph-cluster",
+      "name": "Kilo Glyph Cluster",
+      "channel": "kilo",
+      "wire": "chat",
+      "vision": false,
+      "reasoning": true,
+      "contextWindow": 256000,
+      "maxOutput": 256000,
+      "canDisableThinking": true,
+      "regionSensitive": false,
+      "efforts": [
+        "disabled",
+        "low",
+        "medium",
+        "high"
+      ],
+      "effortDefault": "high",
+      "effortPatch": {
+        "reasoning": {
+          "effort": "$effort"
+        }
+      },
+      "effortOffPatch": {
+        "reasoning": {
+          "enabled": false
+        }
+      },
+      "tags": [
+        "long-context",
+        "reasoning",
+        "thinking-levels",
+        "long-output"
+      ]
+    }
+  ]
+}
