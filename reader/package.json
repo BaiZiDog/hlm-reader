@@ -1,0 +1,29 @@
+{
+  "name": "hlm-reader",
+  "productName": "红楼梦阅读器",
+  "version": "1.0.0",
+  "description": "《红楼梦》桌面与移动阅读器（Electron + PWA）",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "serve": "node mobile/serve.mjs",
+    "build:mobile": "node mobile/build.mjs",
+    "data": "python -I ../tools/build_reader_data.py",
+    "pack": "python -I ../tools/pack_reader.py",
+    "android:web": "node mobile/prepare-android.mjs",
+    "android:sync": "npm run android:web && cap sync android",
+    "android:apk": "npm run android:sync && node mobile/build-android.mjs"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "electron": "^45.4.1",
+    "esbuild": "^0.28.2",
+    "rcedit": "^5.0.2"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}

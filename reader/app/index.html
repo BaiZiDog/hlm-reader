@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http:; manifest-src 'self'; worker-src 'self';">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8f2f2b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="红楼梦">
+  <title>红楼梦 · 阅读器</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="ai.css">
+  <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+  <div id="app">
+    <header id="topbar">
+      <div class="topbar-left">
+        <button id="toggle-toc" class="icon-btn" title="显示 / 隐藏目录（Ctrl+B）" aria-label="显示或隐藏目录">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        </button>
+        <div class="brand">
+          <span class="brand-title">红楼梦</span>
+          <span class="brand-sub">人民文学出版社 · 2008 年第 3 版</span>
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path>
+        </svg>
+        <input id="search-input" type="search" placeholder="搜索全文…（Ctrl+F）"
+               autocomplete="off" spellcheck="false" aria-label="搜索全文">
+        <button id="search-clear" class="search-clear" title="清除搜索" hidden aria-label="清除搜索">×</button>
+      </div>
+
+      <div class="topbar-right">
+        <div class="zoom-group" role="group" aria-label="缩放">
+          <button id="zoom-out" class="icon-btn small" title="缩小（Ctrl+-）" aria-label="缩小">−</button>
+          <button id="zoom-label" class="zoom-label" title="重置为 100%（Ctrl+0）" aria-label="当前缩放，点击重置">100%</button>
+          <button id="zoom-in" class="icon-btn small" title="放大（Ctrl+=）" aria-label="放大">＋</button>
+        </div>
+        <button id="toggle-notes" class="text-btn" title="显示 / 隐藏注释栏（Ctrl+J）">注释</button>
+        <button id="ai-open" class="text-btn ai-open-btn" title="打开 AI 导读" aria-pressed="false">AI 导读</button>
+      </div>
+    </header>
+
+    <aside id="toc" aria-label="目录">
+      <div class="panel-head">
+        <span class="panel-title">目录</span>
+        <span id="toc-count" class="panel-note"></span>
+      </div>
+      <div class="toc-filter-wrap">
+        <input id="toc-filter" type="search" placeholder="筛选回目…" autocomplete="off" aria-label="筛选回目">
+      </div>
+      <nav id="toc-list" class="toc-list"></nav>
+    </aside>
+
+    <main id="reader" tabindex="-1">
+      <div class="page">
+        <div class="chapter-kicker" id="chapter-kicker"></div>
+        <h1 class="chapter-heading" id="chapter-heading"></h1>
+        <div class="chapter-body" id="chapter-body"></div>
+        <nav class="chapter-nav" aria-label="回目翻页">
+          <button id="prev-ch" class="chapter-nav-btn" type="button">
+            <span class="nav-dir">← 上一回</span>
+            <span id="prev-label" class="nav-label"></span>
+          </button>
+          <button id="next-ch" class="chapter-nav-btn next" type="button">
+            <span class="nav-dir">下一回 →</span>
+            <span id="next-label" class="nav-label"></span>
+          </button>
+        </nav>
+      </div>
+    </main>
+
+    <aside id="notes" aria-label="注释">
+      <div class="panel-head">
+        <span class="panel-title" id="notes-title">注释</span>
+        <button id="notes-close" class="icon-btn small" title="隐藏注释栏" aria-label="隐藏注释栏">×</button>
+      </div>
+      <div id="notes-body" class="notes-body"></div>
+    </aside>
+  </div>
+
+  <div id="drawer-scrim" class="drawer-scrim" hidden></div>
+
+  <section id="search-panel" class="search-panel" hidden>
+    <div class="search-head">
+      <span id="search-summary">输入关键词搜索全书</span>
+      <button id="search-close" class="icon-btn small" title="关闭搜索（Esc）" aria-label="关闭搜索">×</button>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <nav id="ai-cite-nav" class="ai-cite-nav" hidden aria-label="AI 引用导航">
+    <span class="ai-cite-badge">AI 引用</span>
+    <button id="ai-cite-prev" class="ai-cite-arrow" type="button" title="上一处引用" aria-label="上一处引用">‹</button>
+    <span id="ai-cite-label" class="ai-cite-label"></span>
+    <span id="ai-cite-count" class="ai-cite-count"></span>
+    <button id="ai-cite-next" class="ai-cite-arrow" type="button" title="下一处引用" aria-label="下一处引用">›</button>
+    <button id="ai-cite-close" class="ai-cite-close" type="button" title="关闭引用导航" aria-label="关闭引用导航">×</button>
+  </nav>
+
+  <section id="ai-read-task" class="ai-read-task" hidden aria-label="AI 阅读任务" aria-live="polite">
+    <div class="ai-read-top">
+      <span class="ai-read-badge">AI 带读</span>
+      <span id="ai-read-range" class="ai-read-range"></span>
+      <span id="ai-read-duration" class="ai-read-duration"></span>
+      <button id="ai-read-close" class="ai-read-close" type="button" title="关闭阅读任务" aria-label="关闭阅读任务">×</button>
+    </div>
+    <div id="ai-read-focus" class="ai-read-focus" hidden></div>
+    <div class="ai-read-bottom">
+      <span id="ai-read-timer" class="ai-read-timer">剩余 00:00</span>
+      <span class="ai-read-track" aria-hidden="true"><span id="ai-read-progress" class="ai-read-progress"></span></span>
+      <button id="ai-read-done" class="ai-read-done" type="button">读完了，继续</button>
+    </div>
+  </section>
+
+  <section id="ai-float" class="ai-float" hidden aria-label="AI 导读">
+    <header id="ai-drag" class="ai-head">
+      <div class="ai-head-title">
+        <svg class="ai-spark" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3l1.6 5.1L19 10l-5.4 1.9L12 17l-1.6-5.1L5 10l5.4-1.9L12 3z"/>
+          <path d="M18.5 15.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7.7-2.1z"/>
+        </svg>
+        <span>AI 导读</span>
+        <span id="ai-model-chip" class="ai-model-chip">未配置</span>
+      </div>
+      <div class="ai-head-actions">
+        <button id="ai-new" class="ai-icon-btn" type="button" title="新对话">＋</button>
+        <button id="ai-settings-open" class="ai-icon-btn" type="button" title="AI 设置">⚙</button>
+        <button id="ai-minimize" class="ai-icon-btn" type="button" title="收起">—</button>
+        <button id="ai-close" class="ai-icon-btn" type="button" title="关闭">×</button>
+      </div>
+    </header>
+
+    <div class="ai-content">
+      <div id="ai-chat" class="ai-chat">
+        <div id="ai-messages" class="ai-messages"></div>
+        <div class="ai-composer">
+          <div class="ai-context-row">
+            <span id="ai-context" class="ai-context"></span>
+            <label class="ai-spoiler" title="关闭时只依据当前回及之前的内容">
+              <input id="ai-spoiler" type="checkbox"> 允许剧透
+            </label>
+          </div>
+          <textarea id="ai-input" class="ai-input" rows="2"
+                    placeholder="问点关于《红楼梦》的…（Enter 发送，Shift+Enter 换行）"></textarea>
+          <div class="ai-composer-actions">
+            <span id="ai-hint" class="ai-hint">Enter 发送 · Shift+Enter 换行</span>
+            <button id="ai-stop" class="ai-stop" type="button" hidden>停止</button>
+            <button id="ai-send" class="ai-send" type="button">发送</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ai-settings" class="ai-settings" hidden>
+        <div class="ai-settings-head">
+          <button id="ai-settings-back" class="ai-icon-btn" type="button" title="返回对话">←</button>
+          <span>AI 设置</span>
+        </div>
+        <div class="ai-settings-body">
+          <div class="ai-field">
+            <div class="ai-label">服务</div>
+            <div class="ai-presets">
+              <button type="button" data-provider="builtin">内置免费模型</button>
+              <button type="button" data-provider="custom">自定义 API</button>
+              <button type="button" data-provider="official">Anthropic 官方</button>
+            </div>
+            <div id="ai-preset-hint" class="ai-hint-text"></div>
+          </div>
+
+          <label class="ai-field" id="ai-base-field">
+            <span class="ai-label">Base URL</span>
+            <input id="ai-base-url" type="url" spellcheck="false" placeholder="https://api.anthropic.com">
+          </label>
+
+          <label class="ai-field" id="ai-key-field">
+            <span class="ai-label">API Key</span>
+            <input id="ai-key" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="留空则保留已保存的密钥">
+          </label>
+          <div id="ai-key-status" class="ai-hint-text"></div>
+
+          <label class="ai-field">
+            <span class="ai-label">模型</span>
+            <input id="ai-model" list="ai-model-list" spellcheck="false"
+                   placeholder="刷新模型，或手动填写模型 ID">
+            <datalist id="ai-model-list"></datalist>
+          </label>
+
+          <div class="ai-settings-row">
+            <button id="ai-refresh-models" class="ai-secondary-btn" type="button">刷新模型 / 测试连接</button>
+            <button id="ai-save" class="ai-primary-btn" type="button">保存</button>
+          </div>
+          <div id="ai-settings-status" class="ai-settings-status"></div>
+
+          <p class="ai-notice" id="ai-notice">
+            使用 AI 导读时，所选章节原文与注释会发送到你配置的 AI 服务。
+            密钥保存在本机加密存储中，不显示在对话里。
+          </p>
+          <div class="ai-settings-foot" id="ai-key-foot">
+            <button id="ai-clear-key" class="ai-link-btn" type="button">删除已保存的密钥</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ai-resize" class="ai-resize" title="拖动调整大小"></div>
+  </section>
+
+  <section id="data-import" class="data-import" hidden aria-label="导入书页数据">
+    <div class="data-import-card">
+      <div class="data-import-kicker">红楼梦 · 阅读器</div>
+      <h1>先载入书页数据</h1>
+      <p class="data-import-lead">
+        网页版与公开仓库不随程序分发《红楼梦》正文和注释。
+        请选择由本项目数据构建脚本生成的 <code>book.json</code>。
+      </p>
+      <label id="data-import-pick" class="data-import-pick" tabindex="0">
+        <input id="data-import-file" type="file" accept=".json,application/json" hidden>
+        <span class="data-import-icon" aria-hidden="true">＋</span>
+        <span>选择 book.json</span>
+      </label>
+      <p id="data-import-status" class="data-import-status" role="status" aria-live="polite"></p>
+      <p class="data-import-note">
+        数据只保存在本机浏览器（IndexedDB），不会上传。导入后即可离线阅读；
+        AI 导读仍需联网，并在设置中填写你自己的 Anthropic 兼容 API。
+      </p>
+      <details class="data-import-help">
+        <summary>书源数据从哪里来？</summary>
+        <p>
+          在仓库的 <code>tools/</code> 目录运行数据构建脚本，生成的
+          <code>reader/app/book.json</code> 就是这里需要的文件。构建脚本需要你
+          自己合法持有的正文与注释源文件，仓库不附带这些内容。
+        </p>
+      </details>
+    </div>
+  </section>
+
+  <div id="boot">
+    <div class="boot-title">红楼梦</div>
+    <div class="boot-sub">正在展开书页…</div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="mobile-ai.js"></script>
+  <script src="data-import.js"></script>
+  <script src="platform.js"></script>
+  <script src="app.js"></script>
+  <script src="ai.js"></script>
+</body>
+</html>

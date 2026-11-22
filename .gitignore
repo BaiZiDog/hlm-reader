@@ -1,0 +1,41 @@
+# 依赖与构建产物
+node_modules/
+reader/node_modules/
+reader/dist/
+reader/shots-mobile/
+reader/tmp-mobile-nodata/
+reader/android-web/
+reader/android/.gradle/
+reader/android/app/build/
+reader/android/build/
+reader/android/local.properties
+reader/android/app/src/main/assets/public/
+reader/android/app/src/main/assets/capacitor.config.json
+reader/android-build.log
+__pycache__/
+*.pyc
+
+# 书页数据：公开仓库不包含正文、注释或派生数据
+chapters/
+links/
+reader/app/data.js
+reader/app/book.json
+背景信息.md
+*.epub
+红楼梦*.txt
+
+# 本机环境
+.env
+.env.*
+*.keystore
+*.jks
+local.properties
+android/.gradle/
+android/app/build/
+android/build/
+
+# 杂项
+.DS_Store
+Thumbs.db
+*.log
+*.zip

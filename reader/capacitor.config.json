@@ -1,0 +1,11 @@
+{
+  "appId": "com.hlm.reader",
+  "appName": "红楼梦阅读器",
+  "webDir": "android-web",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
