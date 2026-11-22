@@ -6,7 +6,7 @@
 
 输出:
     reader/dist/红楼梦阅读器-win64/红楼梦阅读器.exe
-    reader/dist/红楼梦阅读器-1.0.0-win64.zip
+    reader/dist/红楼梦阅读器-1.0.1-win64.zip
 """
 from __future__ import annotations
 
@@ -23,10 +23,10 @@ ELECTRON_DIST = READER / "node_modules" / "electron" / "dist"
 DIST_ROOT = READER / "dist"
 APP_DIR = DIST_ROOT / "红楼梦阅读器-win64"
 EXE_NAME = "红楼梦阅读器.exe"
-ZIP_PATH = DIST_ROOT / "红楼梦阅读器-1.0.0-win64.zip"
+ZIP_PATH = DIST_ROOT / "红楼梦阅读器-1.0.1-win64.zip"
 RCEDIT = READER / "node_modules" / "rcedit" / "bin" / "rcedit-x64.exe"
 
-README_TEXT = """红楼梦阅读器 1.0.0
+README_TEXT = """红楼梦阅读器 1.0.1
 
 双击「红楼梦阅读器.exe」启动。
 
@@ -51,7 +51,8 @@ AI 导读：
   “第X回 pA–pB”即可。
   输入框上方可勾选「逐段带读」：每次 1–3 段，首次只提示范围，读完后用 2–4 句话
   讲解再给下一段。每条回答可「带索引」或「不带索引」复制。与《红楼梦》无关的
-  提问会被拒绝，并禁用发送 30 秒。
+  提问会被拒绝，并禁用发送 30 秒。当前对话内会保留多轮上下文，可以接着追问；
+  点「＋新对话」或重启程序后清空。
   已知问题：部分免费模型会在中文回答中夹杂英文，本程序不尝试修复或过滤。
   也可在 AI 设置中切换为自定义 Anthropic Messages 兼容 API，填写 Base URL、Key 与模型。
   使用 AI 时，所选章节原文与注释会发送到模型上游；免费池提示词可能被上游记录，
@@ -84,8 +85,8 @@ def run_rcedit(exe: Path, icon: Path) -> None:
     command = [
         str(RCEDIT), str(exe),
         "--set-icon", str(icon),
-        "--set-file-version", "1.0.0",
-        "--set-product-version", "1.0.0",
+        "--set-file-version", "1.0.1",
+        "--set-product-version", "1.0.1",
         "--set-version-string", "ProductName", "红楼梦阅读器",
         "--set-version-string", "FileDescription", "红楼梦阅读器",
         "--set-version-string", "CompanyName", "HLM Reader",

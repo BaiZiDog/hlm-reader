@@ -1,7 +1,7 @@
 {
   "name": "hlm-reader",
   "productName": "红楼梦阅读器",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "《红楼梦》桌面与移动阅读器（Electron + PWA）",
   "main": "main.js",
   "private": true,
