@@ -14,6 +14,8 @@ const CORE = [
   './app.js',
   './ai.js',
   './manifest.webmanifest',
+  './LICENSE.txt',
+  './THIRD_PARTY_NOTICES.md',
   './icon-192.png',
   './icon-512.png',
   './icon.png',
