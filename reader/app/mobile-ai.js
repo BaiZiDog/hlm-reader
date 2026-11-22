@@ -34807,10 +34807,11 @@ ${text}`;
       }
       function fallbackTopicVerdict(text) {
         const value = String(text || "");
-        const relevant = /红楼梦|石头记|曹雪芹|高鹗|程伟元|脂砚斋|红学|贾宝玉|林黛玉|薛宝钗|王熙凤|金陵十二钗|大观园|荣国府|宁国府|这一回|本回|本章|这段|下一段|下一回|回目|批注|校记|带读/i;
-        const offTopic = /python|javascript|typescript|java|写.*代码|编程|算法|天气|股票|彩票|翻译成英文|数学题|物理题|化学题|菜谱|旅游攻略|电影推荐|音乐推荐|游戏攻略|健康咨询|医疗|法律咨询|金融投资|政治/i;
-        if (offTopic.test(value) && !relevant.test(value)) return false;
-        if (relevant.test(value)) return true;
+        const strong = /红楼梦|石头记|曹雪芹|高鹗|程伟元|脂砚斋|红学|贾宝玉|林黛玉|薛宝钗|王熙凤|金陵十二钗|大观园|荣国府|宁国府/i;
+        const weak = /这一回|本回|本章|这段|下一段|下一回|回目|批注|校记|带读/i;
+        const offTopic = /python|javascript|typescript|java|写.*代码|编程|算法|天气|股票|彩票|翻译成英文|数学题|物理题|化学题|菜谱|旅游攻略|电影推荐|音乐推荐|游戏攻略|健康咨询|医疗|法律咨询|金融投资|政治/i;
+        if (offTopic.test(value) && !strong.test(value)) return false;
+        if (strong.test(value) || weak.test(value) && !offTopic.test(value)) return true;
         return null;
       }
       function topicVerdictFromText(value) {
